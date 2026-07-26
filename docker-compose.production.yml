@@ -21,10 +21,10 @@ services:
     restart: always
 
   frontend:
-    build:
-      context: ./frontend
+    image: mararaven/foodgram_frontend:latest
     volumes:
       - frontend_build:/app/build/
+    command: cp -r /app/build/. /frontend_build/
 
   nginx:
     image: nginx:1.19.3
