@@ -9,7 +9,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
 
 from recipes.models import (
-    Tag, Ingredient, Recipe, RecipeIngredient,
+    Tag, Ingredient, Recipe,
     Favorite, ShoppingCart, Subscription, ShortLink
 )
 from users.models import User
