@@ -6,7 +6,6 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.pagination import PageNumberPagination
 
 from recipes.models import (
     Tag, Ingredient, Recipe,
@@ -20,6 +19,7 @@ from .serializers import (
 )
 from .filters import RecipeFilter, IngredientFilter
 from .permissions import IsAuthorOrReadOnly
+from .pagination import LimitPagination
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -49,7 +49,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthorOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
-    pagination_class = PageNumberPagination
+    pagination_class = LimitPagination
 
     def get_serializer_class(self):
         """Выбирает сериализатор в зависимости от действия."""
@@ -134,12 +134,41 @@ class RecipeViewSet(viewsets.ModelViewSet):
             ShortLinkSerializer(short_link, context={'request': request}).data
         )
 
+    def create(self, request, *args, **kwargs):
+        """Создаёт рецепт и возвращает его в формате чтения."""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        read_serializer = RecipeSerializer(
+            serializer.instance, context=self.get_serializer_context()
+        )
+        return Response(read_serializer.data, status=status.HTTP_201_CREATED)
+
+    def update(self, request, *args, **kwargs):
+        """Обновляет рецепт и возвращает его в формате чтения."""
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        read_serializer = RecipeSerializer(
+            serializer.instance, context=self.get_serializer_context()
+        )
+        return Response(read_serializer.data)
+
+    def get_permissions(self):
+        """Назначает права в зависимости от действия."""
+        if self.action in ('favorite', 'shopping_cart',
+                           'download_shopping_cart'):
+            return [permissions.IsAuthenticated()]
+        return super().get_permissions()
+
 
 class SubscriptionViewSet(viewsets.GenericViewSet):
     """Вьюсет для управления подписками."""
 
     permission_classes = (permissions.IsAuthenticated,)
-    pagination_class = PageNumberPagination
+    pagination_class = LimitPagination
 
     @action(detail=False, methods=['get'])
     def subscriptions(self, request):
@@ -155,7 +184,7 @@ class SubscriptionViewSet(viewsets.GenericViewSet):
     @action(detail=True, methods=['post', 'delete'])
     def subscribe(self, request, pk=None):
         """Подписывает или отписывает пользователя от автора."""
-        author = User.objects.get(pk=pk)
+        author = get_object_or_404(User, pk=pk)
         if request.method == 'POST':
             if request.user == author:
                 return Response(

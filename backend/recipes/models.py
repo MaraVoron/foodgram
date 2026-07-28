@@ -1,6 +1,7 @@
 import secrets
 
 from django.db import models
+from django.core.validators import MinValueValidator
 
 from users.models import User
 
@@ -75,6 +76,7 @@ class Recipe(models.Model):
     )
     cooking_time = models.PositiveIntegerField(
         verbose_name='Время приготовления (мин)',
+        validators=[MinValueValidator(1)],
     )
     ingredients = models.ManyToManyField(
         Ingredient,
@@ -121,6 +123,7 @@ class RecipeIngredient(models.Model):
     )
     amount = models.PositiveIntegerField(
         verbose_name='Количество',
+        validators=[MinValueValidator(1)],
     )
 
     class Meta:
@@ -239,6 +242,11 @@ class Subscription(models.Model):
         return f'{self.user} подписан на {self.author}'
 
 
+def generate_code():
+    """Генерирует уникальный код для короткой ссылки."""
+    return secrets.token_hex(4)
+
+
 class ShortLink(models.Model):
     """Модель короткой ссылки на рецепт."""
 
@@ -251,13 +259,12 @@ class ShortLink(models.Model):
     code = models.CharField(
         max_length=8,
         unique=True,
-        default=secrets.token_hex(4),
+        default=generate_code,
         editable=False,
     )
 
     class Meta:
-        """Основной класс."""
-
+        """Метаданные модели."""
         verbose_name = 'Короткая ссылка'
         verbose_name_plural = 'Короткие ссылки'
 
