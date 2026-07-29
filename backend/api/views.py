@@ -15,7 +15,7 @@ from users.models import User
 from .serializers import (
     TagSerializer, IngredientSerializer, RecipeSerializer,
     RecipeCreateSerializer, SubscriptionSerializer,
-    ShortLinkSerializer, AvatarSerializer
+    ShortLinkSerializer, AvatarSerializer, ShortRecipeSerializer
 )
 from .filters import RecipeFilter, IngredientFilter
 from .permissions import IsAuthorOrReadOnly
@@ -95,7 +95,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST
                 )
             return Response(
-                RecipeSerializer(recipe, context={'request': request}).data,
+                ShortRecipeSerializer(recipe,
+                                      context={'request': request}).data,
                 status=status.HTTP_201_CREATED
             )
         ShoppingCart.objects.filter(user=request.user, recipe=recipe).delete()
