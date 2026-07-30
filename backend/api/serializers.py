@@ -213,6 +213,15 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                 )
         return instance
 
+    def validate(self, value):
+        """Проверяет теги на дубликаты."""
+        if not value:
+            raise serializers.ValidationError(
+                'Нужно добавить хотя бы один тег')
+        if len(value) != len(set(value)):
+            raise serializers.ValidationError('Теги не должны повторяться')
+        return value
+
 
 class ShortRecipeSerializer(serializers.ModelSerializer):
     """Краткий сериализатор рецепта для вложенных списков."""
@@ -290,3 +299,10 @@ class AvatarSerializer(serializers.ModelSerializer):
 
         model = User
         fields = ('avatar',)
+
+    def to_representation(self, instance):
+        """Возвращает ссылку на аватар."""
+        request = self.context.get('request')
+        if instance.avatar:
+            return {'avatar': request.build_absolute_uri(instance.avatar.url)}
+        return {'avatar': None}
