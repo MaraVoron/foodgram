@@ -78,7 +78,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 RecipeSerializer(recipe, context={'request': request}).data,
                 status=status.HTTP_201_CREATED
             )
-        Favorite.objects.filter(user=request.user, recipe=recipe).delete()
+        deleted, _ = Favorite.objects.filter(user=request.user, 
+                                             recipe=recipe).delete()
+        if not deleted:
+            return Response({'error': 'Рецепт не в избранном'},
+                            status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=['post', 'delete'])
@@ -99,7 +103,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
                                       context={'request': request}).data,
                 status=status.HTTP_201_CREATED
             )
-        ShoppingCart.objects.filter(user=request.user, recipe=recipe).delete()
+        deleted, _ = ShoppingCart.objects.filter(user=request.user,
+                                                 recipe=recipe).delete()
+        if not deleted:
+            return Response({'error': 'Рецепт не в списке покупок'},
+                            status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False, methods=['get'])
@@ -207,9 +215,9 @@ class SubscriptionViewSet(viewsets.GenericViewSet):
                 ).data,
                 status=status.HTTP_201_CREATED
             )
-        Subscription.objects.filter(
-            user=request.user, author=author
-        ).delete()
+        deleted, _ = Subscription.objects.filter(user=request.user, author=author).delete()
+        if not deleted:
+            return Response({'error': 'Вы не подписаны'}, status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
