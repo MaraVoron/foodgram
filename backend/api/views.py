@@ -6,6 +6,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
+from djoser.views import UserViewSet as DjoserUserViewSet
+
 
 from recipes.models import (
     Tag, Ingredient, Recipe,
@@ -231,21 +233,30 @@ def short_link_redirect(request, code):
 
 
 class AvatarView(APIView):
-    """Вью для загрузки и удаления аватара."""
+    """Вьюсеры для загрузки и удаления аватара."""
 
     permission_classes = (permissions.IsAuthenticated,)
 
     def put(self, request):
         """Загружает или обновляет аватар пользователя."""
-        serializer = AvatarSerializer(request.user, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-                {'avatar': request.build_absolute_uri(request.user.avatar.url)}
-            )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer = AvatarSerializer(
+            request.user, data=request.data, context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
 
     def delete(self, request):
         """Удаляет аватар пользователя."""
         request.user.avatar.delete(save=True)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class UserViewSet(DjoserUserViewSet):
+    """Вьюсет пользователя с раздельными правами."""
+
+    def get_permissions(self):
+        """/me/ только для авторизованных, остальное по настройкам."""
+        if self.action == 'me':
+            self.permission_classes = [permissions.IsAuthenticated]
+        return super().get_permissions()

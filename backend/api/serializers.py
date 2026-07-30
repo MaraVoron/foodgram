@@ -7,7 +7,6 @@ from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
                             ShoppingCart, ShortLink, Subscription, Tag)
 from users.models import User
 
-
 class Base64ImageField(serializers.ImageField):
     """Кастомное поле для обработки картинок в base64."""
 
