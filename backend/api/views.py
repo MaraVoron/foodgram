@@ -78,7 +78,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 RecipeSerializer(recipe, context={'request': request}).data,
                 status=status.HTTP_201_CREATED
             )
-        deleted, _ = Favorite.objects.filter(user=request.user, 
+        deleted, _ = Favorite.objects.filter(user=request.user,
                                              recipe=recipe).delete()
         if not deleted:
             return Response({'error': 'Рецепт не в избранном'},
@@ -215,9 +215,11 @@ class SubscriptionViewSet(viewsets.GenericViewSet):
                 ).data,
                 status=status.HTTP_201_CREATED
             )
-        deleted, _ = Subscription.objects.filter(user=request.user, author=author).delete()
+        deleted, _ = Subscription.objects.filter(
+            user=request.user, author=author).delete()
         if not deleted:
-            return Response({'error': 'Вы не подписаны'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Вы не подписаны'},
+                            status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
