@@ -240,7 +240,9 @@ class AvatarView(APIView):
         serializer = AvatarSerializer(request.user, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
+            return Response(
+                {'avatar': request.build_absolute_uri(request.user.avatar.url)}
+            )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request):
