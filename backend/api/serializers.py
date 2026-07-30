@@ -219,17 +219,19 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Нужно добавить хотя бы один тег')
         if len(value) != len(set(value)):
-            raise serializers.ValidationError('Теги не должны повторяться')
+            raise serializers.ValidationError(
+                'Теги не должны повторяться')
         return value
 
-def validate(self, data):
-    """Проверяет обязательные поля при PATCH."""
-    if 'tags' not in self.initial_data:
-        raise serializers.ValidationError({'tags': 'Это поле обязательно.'})
-    if 'ingredients' not in self.initial_data:
-        raise serializers.ValidationError(
-            {'ingredients': 'Это поле обязательно.'})
-    return data
+    def validate(self, data):
+        """Проверяет обязательные поля при PATCH."""
+        if 'tags' not in self.initial_data:
+            raise serializers.ValidationError(
+                {'tags': 'Это поле обязательно.'})
+        if 'ingredients' not in self.initial_data:
+            raise serializers.ValidationError(
+                {'ingredients': 'Это поле обязательно.'})
+        return data
 
 
 class ShortRecipeSerializer(serializers.ModelSerializer):

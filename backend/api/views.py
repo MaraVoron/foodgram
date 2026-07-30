@@ -75,7 +75,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST
                 )
             return Response(
-                ShortRecipeSerializer(recipe, context={'request': request}).data,
+                ShortRecipeSerializer(
+                    recipe, context={'request': request}).data,
                 status=status.HTTP_201_CREATED
             )
         deleted, _ = Favorite.objects.filter(user=request.user,
