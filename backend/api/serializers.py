@@ -166,13 +166,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                 'Ингредиенты не должны повторяться')
         return value
 
-    def validate_tags(self, value):
-        """Проверяет, что добавлен хотя бы один тег."""
-        if not value:
-            raise serializers.ValidationError(
-                'Нужно добавить хотя бы один тег')
-        return value
-
     def create(self, validated_data):
         """Создаёт рецепт с ингредиентами и тегами."""
         ingredients_data = validated_data.pop('recipe_ingredients')
