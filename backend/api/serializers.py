@@ -213,7 +213,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                 )
         return instance
 
-    def validate(self, value):
+    def validate_tags(self, value):
         """Проверяет теги на дубликаты."""
         if not value:
             raise serializers.ValidationError(
@@ -221,6 +221,15 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         if len(value) != len(set(value)):
             raise serializers.ValidationError('Теги не должны повторяться')
         return value
+
+def validate(self, data):
+    """Проверяет обязательные поля при PATCH."""
+    if 'tags' not in self.initial_data:
+        raise serializers.ValidationError({'tags': 'Это поле обязательно.'})
+    if 'ingredients' not in self.initial_data:
+        raise serializers.ValidationError(
+            {'ingredients': 'Это поле обязательно.'})
+    return data
 
 
 class ShortRecipeSerializer(serializers.ModelSerializer):
@@ -292,7 +301,7 @@ class ShortLinkSerializer(serializers.ModelSerializer):
 class AvatarSerializer(serializers.ModelSerializer):
     """Сериализатор для загрузки аватара."""
 
-    avatar = serializers.ImageField(required=True)
+    avatar = Base64ImageField(required=True)
 
     class Meta:
         """Основной класс."""
