@@ -20,7 +20,8 @@ from .permissions import IsAuthorOrReadOnly
 from .serializers import (
     AvatarSerializer, IngredientSerializer, RecipeCreateSerializer,
     RecipeSerializer, SubscriptionSerializer, TagSerializer,
-    FavoriteSerializer, ShoppingCartSerializer, SubscriptionCreateSerializer
+    FavoriteSerializer, ShoppingCartSerializer, SubscriptionCreateSerializer,
+    SubscriptionCreateSerializer
 )
 
 
