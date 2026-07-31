@@ -1,23 +1,13 @@
 from rest_framework import permissions
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 
-class IsAuthorOrReadOnly(permissions.BasePermission):
-    """
-    Права доступа: чтение для всех, запись только для авторов.
-
-    Чтение доступно всем пользователям.
-    Создание доступно только авторизованным.
-    Редактирование и удаление доступно только автору объекта.
-    """
-
-    def has_permission(self, request, view):
-        """Проверка прав на уровне запроса."""
-        if request.method in permissions.SAFE_METHODS:
-            return True
-        return request.user.is_authenticated
+class IsAuthorOrReadOnly(IsAuthenticatedOrReadOnly):
+    """Класс для прав доступа."""
 
     def has_object_permission(self, request, view, obj):
-        """Проверка прав на уровне объекта."""
-        if request.method in permissions.SAFE_METHODS:
-            return True
-        return obj.author == request.user
+        """Проверка прав доступа."""
+        return (
+            request.method in permissions.SAFE_METHODS
+            or obj.author == request.user
+        )

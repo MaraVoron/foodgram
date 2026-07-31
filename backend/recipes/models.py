@@ -1,23 +1,30 @@
 import secrets
 
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.core.validators import MinValueValidator
 
 from users.models import User
+from .constants import (
+    AMOUNT_MAX, AMOUNT_MIN, COOKING_TIME_MAX, COOKING_TIME_MIN,
+    INGREDIENT_MEASUREMENT_UNIT_MAX_LENGTH, INGREDIENT_NAME_MAX_LENGTH,
+    RECIPE_NAME_MAX_LENGTH, SHORT_CODE_LENGTH, TAG_NAME_MAX_LENGTH,
+    TAG_SLUG_MAX_LENGTH,
+)
+
+
+def generate_short_code():
+    """Генерирует код для короткой ссылки."""
+    return secrets.token_hex(4)
 
 
 class Tag(models.Model):
     """Модель тега."""
 
     name = models.CharField(
-        verbose_name='Название',
-        max_length=200,
-        unique=True,
+        verbose_name='Название', max_length=TAG_NAME_MAX_LENGTH, unique=True,
     )
     slug = models.SlugField(
-        verbose_name='Слаг',
-        max_length=200,
-        unique=True,
+        verbose_name='Слаг', max_length=TAG_SLUG_MAX_LENGTH, unique=True,
     )
 
     class Meta:
@@ -35,12 +42,11 @@ class Ingredient(models.Model):
     """Модель ингредиента."""
 
     name = models.CharField(
-        verbose_name='Название',
-        max_length=200,
+        verbose_name='Название', max_length=INGREDIENT_NAME_MAX_LENGTH,
     )
     measurement_unit = models.CharField(
         verbose_name='Единица измерения',
-        max_length=200,
+        max_length=INGREDIENT_MEASUREMENT_UNIT_MAX_LENGTH,
     )
 
     class Meta:
@@ -48,6 +54,12 @@ class Ingredient(models.Model):
 
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['name', 'measurement_unit'],
+                name='unique_ingredient_measurement_unit',
+            )
+        ]
 
     def __str__(self):
         """Строковое представление ингредиента."""
@@ -64,19 +76,18 @@ class Recipe(models.Model):
         verbose_name='Автор',
     )
     name = models.CharField(
-        verbose_name='Название',
-        max_length=256,
+        verbose_name='Название', max_length=RECIPE_NAME_MAX_LENGTH,
     )
     image = models.ImageField(
-        verbose_name='Картинка',
-        upload_to='recipes/images/',
+        verbose_name='Картинка', upload_to='recipes/images/',
     )
-    text = models.TextField(
-        verbose_name='Описание',
-    )
-    cooking_time = models.PositiveIntegerField(
+    text = models.TextField(verbose_name='Описание')
+    cooking_time = models.PositiveSmallIntegerField(
         verbose_name='Время приготовления (мин)',
-        validators=[MinValueValidator(1)],
+        validators=[
+            MinValueValidator(COOKING_TIME_MIN),
+            MaxValueValidator(COOKING_TIME_MAX),
+        ],
     )
     ingredients = models.ManyToManyField(
         Ingredient,
@@ -85,13 +96,13 @@ class Recipe(models.Model):
         verbose_name='Ингредиенты',
     )
     tags = models.ManyToManyField(
-        Tag,
-        related_name='recipes',
-        verbose_name='Теги',
+        Tag, related_name='recipes', verbose_name='Теги',
     )
     created_at = models.DateTimeField(
-        verbose_name='Дата публикации',
-        auto_now_add=True,
+        verbose_name='Дата публикации', auto_now_add=True,
+    )
+    short_code = models.CharField(
+        max_length=SHORT_CODE_LENGTH, unique=True, editable=False, blank=True,
     )
 
     class Meta:
@@ -104,6 +115,12 @@ class Recipe(models.Model):
     def __str__(self):
         """Строковое представление рецепта."""
         return self.name
+
+    def save(self, *args, **kwargs):
+        """Генерирует короткий код только при создании."""
+        if not self.short_code:
+            self.short_code = generate_short_code()
+        super().save(*args, **kwargs)
 
 
 class RecipeIngredient(models.Model):
@@ -121,9 +138,12 @@ class RecipeIngredient(models.Model):
         related_name='recipe_ingredients',
         verbose_name='Ингредиент',
     )
-    amount = models.PositiveIntegerField(
+    amount = models.PositiveSmallIntegerField(
         verbose_name='Количество',
-        validators=[MinValueValidator(1)],
+        validators=[
+            MinValueValidator(AMOUNT_MIN),
+            MaxValueValidator(AMOUNT_MAX),
+        ],
     )
 
     class Meta:
@@ -166,8 +186,7 @@ class Favorite(models.Model):
         verbose_name_plural = 'Избранное'
         constraints = [
             models.UniqueConstraint(
-                fields=['user', 'recipe'],
-                name='unique_favorite',
+                fields=['user', 'recipe'], name='unique_favorite',
             )
         ]
 
@@ -199,8 +218,7 @@ class ShoppingCart(models.Model):
         verbose_name_plural = 'Список покупок'
         constraints = [
             models.UniqueConstraint(
-                fields=['user', 'recipe'],
-                name='unique_shopping_cart',
+                fields=['user', 'recipe'], name='unique_shopping_cart',
             )
         ]
 
@@ -232,42 +250,10 @@ class Subscription(models.Model):
         verbose_name_plural = 'Подписки'
         constraints = [
             models.UniqueConstraint(
-                fields=['user', 'author'],
-                name='unique_subscription',
+                fields=['user', 'author'], name='unique_subscription',
             )
         ]
 
     def __str__(self):
         """Строковое представление подписки."""
         return f'{self.user} подписан на {self.author}'
-
-
-def generate_code():
-    """Генерирует уникальный код для короткой ссылки."""
-    return secrets.token_hex(4)
-
-
-class ShortLink(models.Model):
-    """Модель короткой ссылки на рецепт."""
-
-    recipe = models.OneToOneField(
-        Recipe,
-        on_delete=models.CASCADE,
-        related_name='short_link',
-        verbose_name='Рецепт',
-    )
-    code = models.CharField(
-        max_length=8,
-        unique=True,
-        default=generate_code,
-        editable=False,
-    )
-
-    class Meta:
-        """Метаданные модели."""
-        verbose_name = 'Короткая ссылка'
-        verbose_name_plural = 'Короткие ссылки'
-
-    def __str__(self):
-        """Строковое представление короткой ссылки."""
-        return f'/s/{self.code}/'

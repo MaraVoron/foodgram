@@ -1,22 +1,21 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+from .constants import USER_NAME_FIELD_MAX_LENGTH
+
 
 class User(AbstractUser):
     """Кастомная модель пользователя с email в качестве логина."""
 
     email = models.EmailField(
         verbose_name='Email',
-        max_length=254,
         unique=True,
     )
     first_name = models.CharField(
-        verbose_name='Имя',
-        max_length=150,
+        verbose_name='Имя', max_length=USER_NAME_FIELD_MAX_LENGTH,
     )
     last_name = models.CharField(
-        verbose_name='Фамилия',
-        max_length=150,
+        verbose_name='Фамилия', max_length=USER_NAME_FIELD_MAX_LENGTH,
     )
     avatar = models.ImageField(
         upload_to='avatars/',

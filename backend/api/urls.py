@@ -1,8 +1,9 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-from .views import (TagViewSet, IngredientViewSet, RecipeViewSet,
-                    SubscriptionViewSet, AvatarView, UserViewSet)
+from .views import (
+    AvatarView, IngredientViewSet, RecipeViewSet, TagViewSet, UserViewSet
+)
 
 router = DefaultRouter()
 router.register('users', UserViewSet, basename='users')
@@ -11,12 +12,6 @@ router.register('ingredients', IngredientViewSet, basename='ingredients')
 router.register('recipes', RecipeViewSet, basename='recipes')
 
 urlpatterns = [
-    path('users/subscriptions/', SubscriptionViewSet.as_view(
-        {'get': 'subscriptions'}),
-        name='subscriptions'),
-    path('users/me/avatar/', AvatarView.as_view(), name='avatar'),
-    path('users/<int:pk>/subscribe/', SubscriptionViewSet.as_view(
-        {'post': 'subscribe', 'delete': 'subscribe'}),
-        name='subscribe'),
     path('', include(router.urls)),
+    path('users/me/avatar/', AvatarView.as_view(), name='avatar'),
 ]
