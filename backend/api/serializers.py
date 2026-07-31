@@ -36,8 +36,8 @@ class UserSerializer(serializers.ModelSerializer):
         """Проверяет подписку пользователя на автора."""
         request = self.context.get('request')
         return bool(
-            request and request.user.is_authenticated
-            and Subscription.objects.filter(
+            request and request.user.is_authenticated and
+            Subscription.objects.filter(
                 user=request.user, author=obj).exists()
         )
 
@@ -101,16 +101,16 @@ class RecipeSerializer(serializers.ModelSerializer):
         """Проверяет добавлен ли рецепт в избранное."""
         request = self.context.get('request')
         return bool(
-            request and request.user.is_authenticated
-            and Favorite.objects.filter(user=request.user, recipe=obj).exists()
+            request and request.user.is_authenticated and
+            Favorite.objects.filter(user=request.user, recipe=obj).exists()
         )
 
     def get_is_in_shopping_cart(self, obj):
         """Проверяет добавлен ли продукт в список покупок."""
         request = self.context.get('request')
         return bool(
-            request and request.user.is_authenticated
-            and ShoppingCart.objects.filter(
+            request and request.user.is_authenticated and
+            ShoppingCart.objects.filter(
                 user=request.user, recipe=obj).exists()
         )
 
@@ -225,9 +225,9 @@ class SubscriptionSerializer(UserSerializer):
         recipes_limit = request.query_params.get(
             'recipes_limit') if request else None
         if (
-            recipes_limit
-            and recipes_limit.isdigit()
-            and int(recipes_limit) > 0
+            recipes_limit and
+            recipes_limit.isdigit() and
+            int(recipes_limit) > 0
         ):
             recipes = recipes[:int(recipes_limit)]
         return ShortRecipeSerializer(
