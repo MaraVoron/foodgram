@@ -217,9 +217,9 @@ class UserViewSet(DjoserUserViewSet):
 
     @action(detail=True, methods=['post'],
             permission_classes=[permissions.IsAuthenticated])
-    def subscribe(self, request, pk=None):
+    def subscribe(self, request, id=None):
         """Подписывает пользователя на автора."""
-        author = get_object_or_404(User, pk=pk)
+        author = get_object_or_404(User, pk=id)
         serializer = SubscriptionCreateSerializer(
             data={'user': request.user.id, 'author': author.id},
             context={'request': request}
@@ -229,9 +229,9 @@ class UserViewSet(DjoserUserViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @subscribe.mapping.delete
-    def delete_subscribe(self, request, pk=None):
+    def delete_subscribe(self, request, id=None):
         """Отписывает пользователя от автора."""
-        author = get_object_or_404(User, pk=pk)
+        author = get_object_or_404(User, pk=id)
         deleted, _ = Subscription.objects.filter(
             user=request.user, author=author
         ).delete()
