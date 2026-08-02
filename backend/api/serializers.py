@@ -21,11 +21,8 @@ class UserSerializer(serializers.ModelSerializer):
     def get_is_subscribed(self, obj):
         """Проверяет подписку пользователя на автора."""
         request = self.context.get('request')
-        return bool(
-            request and request.user.is_authenticated
-            and Subscription.objects.filter(
-                user=request.user, author=obj).exists()
-        )
+        return bool(request and request.user.is_authenticated and Subscription
+                    .objects.filter(user=request.user, author=obj).exists())
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -86,20 +83,14 @@ class RecipeSerializer(serializers.ModelSerializer):
     def get_is_favorited(self, obj):
         """Проверяет добавлен ли рецепт в избранное."""
         request = self.context.get('request')
-        return bool(
-            request and request.user.is_authenticated
-            and Favorite.objects.filter(
-                user=request.user, recipe=obj).exists()
-        )
+        return bool(request and request.user.is_authenticated and Favorite
+                    .objects.filter(user=request.user, recipe=obj).exists())
 
     def get_is_in_shopping_cart(self, obj):
         """Проверяет добавлен ли продукт в список покупок."""
         request = self.context.get('request')
-        return bool(
-            request and request.user.is_authenticated
-            and ShoppingCart.objects.filter(
-                user=request.user, recipe=obj).exists()
-        )
+        return bool(request and request.user.is_authenticated and ShoppingCart
+                    .objects.filter(user=request.user, recipe=obj).exists())
 
 
 class RecipeCreateSerializer(serializers.ModelSerializer):
