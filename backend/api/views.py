@@ -18,9 +18,9 @@ from .filters import IngredientFilter, RecipeFilter
 from .pagination import LimitPagination
 from .permissions import IsAuthorOrReadOnly
 from .serializers import (
-    AvatarSerializer, IngredientSerializer, RecipeCreateSerializer,
-    RecipeSerializer, SubscriptionSerializer, TagSerializer,
-    FavoriteSerializer, ShoppingCartSerializer, SubscriptionCreateSerializer
+    AvatarSerializer, FavoriteSerializer, IngredientSerializer,
+    RecipeCreateSerializer, RecipeSerializer, ShoppingCartSerializer,
+    SubscriptionCreateSerializer, SubscriptionSerializer, TagSerializer,
 )
 
 
@@ -148,30 +148,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 f'/s/{recipe.short_code}/'
             )
         })
-
-    def create(self, request, *args, **kwargs):
-        """Создаёт рецепт и возвращает его в формате чтения."""
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        read_serializer = RecipeSerializer(
-            serializer.instance, context=self.get_serializer_context()
-        )
-        return Response(read_serializer.data, status=status.HTTP_201_CREATED)
-
-    def update(self, request, *args, **kwargs):
-        """Обновляет рецепт и возвращает его в формате чтения."""
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        serializer = self.get_serializer(
-            instance, data=request.data, partial=partial
-        )
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        read_serializer = RecipeSerializer(
-            serializer.instance, context=self.get_serializer_context()
-        )
-        return Response(read_serializer.data)
 
 
 class AvatarView(APIView):
