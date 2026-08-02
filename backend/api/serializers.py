@@ -21,8 +21,9 @@ class UserSerializer(serializers.ModelSerializer):
     def get_is_subscribed(self, obj):
         """Проверяет подписку пользователя на автора."""
         request = self.context.get('request')
-        return bool(request and request.user.is_authenticated and Subscription
-                    .objects.filter(user=request.user, author=obj).exists())
+        return bool(
+            request and request.user.is_authenticated and Subscription
+            .objects.filter(user=request.user, author=obj).exists())
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -48,8 +49,8 @@ class IngredientSerializer(serializers.ModelSerializer):
 class RecipeIngredientSerializer(serializers.ModelSerializer):
     """Сериализатор для ингредиентов внутри рецепта."""
 
-    id = serializers.PrimaryKeyRelatedField(queryset=Ingredient.objects.all(),
-                                            source='ingredient')
+    id = serializers.PrimaryKeyRelatedField(
+        queryset=Ingredient.objects.all(), source='ingredient')
     name = serializers.CharField(source='ingredient.name', read_only=True)
     measurement_unit = serializers.CharField(
         source='ingredient.measurement_unit', read_only=True)
@@ -108,6 +109,12 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = ('id', 'name', 'image', 'text', 'ingredients',
                   'tags', 'cooking_time')
+
+    def validate_image(self, value):
+        """Проверяет, что изображение не пустое."""
+        if not value:
+            raise serializers.ValidationError('Это поле обязательно.')
+        return value
 
     def validate(self, data):
         """Проверяет данные рецепта при сохранении."""
