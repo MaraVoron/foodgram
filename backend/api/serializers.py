@@ -110,6 +110,18 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'image', 'text', 'ingredients',
                   'tags', 'cooking_time')
 
+    @staticmethod
+    def create_ingredients(recipe, ingredients_data):
+        """Создаёт связи рецепта с ингредиентами одним запросом."""
+        RecipeIngredient.objects.bulk_create(
+            RecipeIngredient(
+                recipe=recipe,
+                ingredient=item['ingredient'],
+                amount=item['amount'],
+            )
+            for item in ingredients_data
+        )
+
     def validate_image(self, value):
         """Проверяет, что изображение не пустое."""
         if not value:
@@ -148,11 +160,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         recipe = Recipe.objects.create(
             author=self.context['request'].user, **validated_data)
         recipe.tags.set(tags_data)
-        for ingredient_data in ingredients_data:
-            RecipeIngredient.objects.create(
-                recipe=recipe,
-                ingredient=ingredient_data['ingredient'],
-                amount=ingredient_data['amount'])
+        self.create_ingredients(recipe, ingredients_data)
         return recipe
 
     def update(self, instance, validated_data):
@@ -161,11 +169,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         tags_data = validated_data.pop('tags')
         instance.tags.set(tags_data)
         instance.recipe_ingredients.all().delete()
-        for ingredient_data in ingredients_data:
-            RecipeIngredient.objects.create(
-                recipe=instance,
-                ingredient=ingredient_data['ingredient'],
-                amount=ingredient_data['amount'])
+        self.create_ingredients(instance, ingredients_data)
         return super().update(instance, validated_data)
 
     def to_representation(self, instance):

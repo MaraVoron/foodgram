@@ -8,7 +8,6 @@ from api.views import short_link_redirect
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
-    path('api/auth/', include('djoser.urls.authtoken')),
     path('s/<str:code>/', short_link_redirect, name='short-link'),
 ]
 
